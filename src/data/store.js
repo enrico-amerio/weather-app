@@ -12,5 +12,6 @@ export const store = reactive({
   currentAirQuality:"",
   currentDate:"",
   todaysWeather:[],
-  nextDaysWeather:[]
+  nextDaysWeather:[],
+  nextDaysPreview:[]
 })

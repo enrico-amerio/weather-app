@@ -74,18 +74,18 @@
       getNextHoursForecastCurrentCity(result){
         
         for (let i = 0; i < result.data.list.length; i++){
-          // const item = result.data.list[i];
           if(result.data.list[i].dt_txt && result.data.list[i].dt_txt.startsWith(this.store.currentDate)){
             this.store.todaysWeather.push(result.data.list[i]);
-            // console.log('OGGI',result.data.list[i]);
           } else {
-            // console.log('FUTURO',result.data.list[i]);
             this.store.nextDaysWeather.push(result.data.list[i]);
         }}
-        // this.store.todaysWeather = result.data.list.filter(item => item.dt_txt && item.dt_txt.startsWith(this.store.currentDate));
-
-        console.log('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq', this.store.todaysWeather);
+        // console.log('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq', this.store.todaysWeather);
+        this.getNextDaysPreview();
+      },
+      getNextDaysPreview(){
         console.log('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', this.store.nextDaysWeather);
+        this.store.nextDaysPreview = Object.values(this.store.nextDaysWeather).filter(item => item.dt_txt.includes("12:00:00"));
+      console.log( 'aosdnbosdnfvosnidvnosd',this.store.nextDaysPreview)
       }
 
     },
@@ -114,7 +114,27 @@
     </ul>
   </div>
   <h2>Tempo prossime ore</h2>
-
+  <div v-if="Object.keys(store.todaysWeather).length > 0" class="d-flex flex-wrap">
+    <div class="card" style="width: 18rem;"  v-for="(item, index) in this.store.todaysWeather" :key="index">
+      <ul class="list-group list-group-flush">
+        <img :src="`http://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`" class="card-img-top" alt="...">
+        <li class="list-group-item">Temperature: {{ item.main.temp }} °</li>
+        <li class="list-group-item">Time: {{ item.dt_txt}} </li>
+      </ul>
+    </div>
+    
+  </div>
+  <h2>Tempo prossimi giorni</h2>
+  <div v-if="Object.keys(store.todaysWeather).length > 0" class="d-flex flex-wrap">
+    
+    <div class="card" style="width: 18rem;"  v-for="index in 4" :key="index-1">
+      <ul class="list-group list-group-flush">
+        <img :src="`http://openweathermap.org/img/wn/${this.store.nextDaysPreview[index-1].weather[0].icon}@2x.png`" class="card-img-top" alt="...">
+        <li class="list-group-item">Temperature: {{ this.store.nextDaysPreview[index-1].main.temp }} °</li>
+        <li class="list-group-item">Time: {{ this.store.nextDaysPreview[index-1].dt_txt}} </li> 
+      </ul>
+    </div>
+  </div>
  </div>
 </template>
 
