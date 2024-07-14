@@ -9,4 +9,8 @@ export const store = reactive({
   lon:"",
   selectedCity:[],
   currentWeather:{},
+  currentAirQuality:"",
+  currentDate:"",
+  todaysWeather:[],
+  nextDaysWeather:[]
 })
