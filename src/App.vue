@@ -1,6 +1,7 @@
 <script>
   import axios from 'axios';
   import {store} from './data/store';
+  import Navbar from './components/Navbar.vue';
 
   export default{
     data(){
@@ -8,6 +9,9 @@
         axios,
         store,
       };
+    },
+    components:{
+      Navbar
     },
     methods: {
       getCoordinates(){
@@ -17,7 +21,7 @@
           this.getCurrentWeather()
           this.getFiveDaysWeather()
           this.getAirQuality()
-          
+
         })
         .catch((error) => {
           console.log(error);
@@ -27,7 +31,7 @@
         axios.get(this.store.getCityWeather + "/weather?units=metric&" + "lat=" + this.store.selectedCity[0].lat + "&lon=" + this.store.selectedCity[0].lon + "&appid=" + this.store.APIKey)
         .then((result) => {
           this.store.currentWeather = result.data
-          
+
         })
         .catch((error) => {
           console.log(error);
@@ -60,7 +64,7 @@
           4: 'Poor',
           5: 'Very Poor'
         };
-        
+
         this.store.currentAirQuality = wordMap[apiValue];
       },
       getTodayDate(){
@@ -79,7 +83,6 @@
           } else {
             this.store.nextDaysWeather.push(result.data.list[i]);
         }}
-        // console.log('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq', this.store.todaysWeather);
         this.getNextDaysPreview();
       },
       getNextDaysPreview(){
@@ -91,16 +94,14 @@
     },
     mounted(){
       this.getTodayDate();
+      this.getCoordinates()
     }
   }
 </script>
 
 <template>
  <div class="container">
-  <form @submit.prevent="this.getCoordinates(this.store.searchBarValue)">
-    <input type="text" v-model="this.store.searchBarValue">
-    <button class="btn btn-danger" type="submit">Invia</button>
-  </form>
+  <Navbar/>
   <h2>Tempo di adesso</h2>
   <div class="card" style="width: 18rem;" v-if="Object.keys(store.currentWeather).length > 0">
     <ul class="list-group list-group-flush">
@@ -122,16 +123,16 @@
         <li class="list-group-item">Time: {{ item.dt_txt}} </li>
       </ul>
     </div>
-    
+
   </div>
   <h2>Tempo prossimi giorni</h2>
   <div v-if="Object.keys(store.todaysWeather).length > 0" class="d-flex flex-wrap">
-    
+
     <div class="card" style="width: 18rem;"  v-for="index in 4" :key="index-1">
       <ul class="list-group list-group-flush">
         <img :src="`http://openweathermap.org/img/wn/${this.store.nextDaysPreview[index-1].weather[0].icon}@2x.png`" class="card-img-top" alt="...">
         <li class="list-group-item">Temperature: {{ this.store.nextDaysPreview[index-1].main.temp }} °</li>
-        <li class="list-group-item">Time: {{ this.store.nextDaysPreview[index-1].dt_txt}} </li> 
+        <li class="list-group-item">Time: {{ this.store.nextDaysPreview[index-1].dt_txt}} </li>
       </ul>
     </div>
   </div>
