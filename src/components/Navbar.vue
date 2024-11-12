@@ -45,7 +45,7 @@ export default {
 <template>
   <div class="container mb-5">
     <div class="wrap d-flex justify-content-end align-items-end">
-      <button class="me-4 location-btn" :class="this.store.getLocationPermitted ? 'location-permitted' : 'location-denied'" @click="getUserLocation" :title="this.store.getLocationPermitted ? '' : 'Geolocation is disabled. Change your settings to enable it.'">
+      <button class="me-4 location-btn" :class="this.store.getLocationPermitted ? 'location-permitted' : 'location-denied'" @click="getUserLocation" :title="this.store.getLocationPermitted ? '' : 'Geolocation is disabled. Change your settings to enable it.'" :disabled="!this.store.getLocationPermitted">
         <i class="fa-solid fa-location-arrow"></i>
       </button>
       <form @submit.prevent="onSubmit" class="search-form">
