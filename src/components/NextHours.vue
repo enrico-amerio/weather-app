@@ -16,7 +16,7 @@ export default {
 
 <template>
   <div class="wrap mb-5" v-if="Object.keys(store.todaysWeather).length > 0">
-    <h2 class="mb-2">Next Hours Weather</h2>
+    <h2 class="mb-2">Next Hours</h2>
     <div class="d-flex flex-wrap justify-content-center justify-content-md-between" >
       <Card   v-for="(item, index) in this.store.nextHours.slice(0, 4)" :key="index"
       :time="item.dt_txt"
