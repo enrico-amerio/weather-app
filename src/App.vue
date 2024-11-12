@@ -2,6 +2,8 @@
   import axios from 'axios';
   import {store} from './data/store';
   import Navbar from './components/Navbar.vue';
+  import Main from './components/Main.vue';
+  import Loader from './components/Loader.vue';
 
   export default{
     data(){
@@ -11,11 +13,64 @@
       };
     },
     components:{
-      Navbar
+      Navbar,
+      Main,
+      Loader
     },
     methods: {
+      getUserLocation(){
+        this.store.currentWeather = {},
+        this.store.currentAirQuality = "",
+        this.store.todaysWeather = [],
+        this.store.nextDaysWeather = [],
+        this.store.nextDaysPreview = [],
+        this.store.errorText = '',
+        this.store.selectedCity = [],
+        this.store.selectedCountry = ''
+        if(navigator.geolocation){
+          this.store.getLocationPermitted = true,
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+            this.store.selectedCity = [
+              {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude,
+              }]
+            this.getCurrentWeather()
+            this.getFiveDaysWeather()
+            this.getAirQuality()
+          },
+          (error) => {
+            this.store.getLocationPermitted = false,
+            this.store.selectedCity = [
+              {
+                lat: 41.8947,
+                lon: 12.4839,
+              }]
+              this.getCurrentWeather()
+              this.getFiveDaysWeather()
+              this.getAirQuality()
+              this.errorMessage = "Geolocation denied or unavailable.";
+              console.error(error);
+          }
+        );
+          
+          }else{
+          console.log('Non ha funzionato')
+          this.getCoordinates()
+        }
+      },
       getCoordinates(){
-        axios.get(this.store.getCityCoordinates + "q=" + this.store.searchBarValue + "&appid=" + this.store.APIKey)
+        this.store.currentWeather = {},
+        this.store.currentAirQuality = "",
+        this.store.todaysWeather = [],
+        this.store.nextDaysWeather = [],
+        this.store.nextDaysPreview = [],
+        this.store.errorText = '',
+        this.store.searchBarValue = "",
+        this.store.selectedCity = [],
+        this.store.selectedCountry = '',
+        axios.get(this.store.getCityCoordinates + "q=" + this.store.serchedCity + ',' + this.store.selectedCountry + "&appid=" + this.store.APIKey)
         .then((result) => {
           this.store.selectedCity = result.data
           this.getCurrentWeather()
@@ -25,6 +80,7 @@
         })
         .catch((error) => {
           console.log(error);
+          this.store.errorText = 'Inserisci un valore valido e riprova'
         })
       },
       getCurrentWeather(){
@@ -40,8 +96,9 @@
       getFiveDaysWeather(){
         axios.get(this.store.getCityWeather + "/forecast?units=metric&" + "lat=" + this.store.selectedCity[0].lat + "&lon=" + this.store.selectedCity[0].lon + "&appid=" + this.store.APIKey)
         .then((result) => {
-          console.log('NEXT 5 DAYS>>>>',result);
+          this.store.nextHours = result.data.list;
           this.getNextHoursForecastCurrentCity(result)
+          
         })
         .catch((error) => {
           console.log(error);
@@ -75,70 +132,47 @@
         let currentDate = `${currentYear}-${currentMonth}-${currentDay}`;
         this.store.currentDate = currentDate;
       },
-      getNextHoursForecastCurrentCity(result){
-        
-        for (let i = 0; i < result.data.list.length; i++){
-          if(result.data.list[i].dt_txt && result.data.list[i].dt_txt.startsWith(this.store.currentDate)){
-            this.store.todaysWeather.push(result.data.list[i]);
+      
+      async getNextHoursForecastCurrentCity(result) {
+        // Svuota e verifica se svuota correttamente prima dell'assegnazione
+        this.store.todaysWeather = [];
+        this.store.nextDaysWeather = [];
+
+        for (let i = 0; i < result.data.list.length; i++) {
+          const forecast = result.data.list[i];
+          if (forecast.dt_txt && forecast.dt_txt.startsWith(this.store.currentDate)) {
+            this.store.todaysWeather.push(forecast);
           } else {
-            this.store.nextDaysWeather.push(result.data.list[i]);
-        }}
+            this.store.nextDaysWeather.push(forecast);
+          }
+        }
+        
+        // Richiama la funzione per generare l'anteprima dei giorni successivi
         this.getNextDaysPreview();
       },
+
+
       getNextDaysPreview(){
-        console.log('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', this.store.nextDaysWeather);
         this.store.nextDaysPreview = Object.values(this.store.nextDaysWeather).filter(item => item.dt_txt.includes("12:00:00"));
-      console.log( 'aosdnbosdnfvosnidvnosd',this.store.nextDaysPreview)
       }
 
     },
     mounted(){
       this.getTodayDate();
-      this.getCoordinates()
+      this.getUserLocation();
+      
     }
   }
 </script>
 
 <template>
- <div class="container">
-  <Navbar/>
-  <h2>Tempo di adesso</h2>
-  <div class="card" style="width: 18rem;" v-if="Object.keys(store.currentWeather).length > 0">
-    <ul class="list-group list-group-flush">
-      <li class="list-group-item">City: {{ this.store.currentWeather.name }}</li>
-      <img :src="`http://openweathermap.org/img/wn/${this.store.currentWeather.weather[0].icon}@2x.png`" class="card-img-top" alt="...">
-      <li class="list-group-item">Weather Description: {{ this.store.currentWeather.weather[0].description }}</li>
-      <li class="list-group-item">Temperature: {{ this.store.currentWeather.main.temp }} °</li>
-      <li class="list-group-item"> Humidity: {{ this.store.currentWeather.main.humidity }} %</li>
-      <li class="list-group-item"> Wind Speed: {{ this.store.currentWeather.wind.speed }} km/h</li>
-      <li class="list-group-item"> Air Quality: {{ this.store.currentAirQuality }}</li>
-    </ul>
-  </div>
-  <h2>Tempo prossime ore</h2>
-  <div v-if="Object.keys(store.todaysWeather).length > 0" class="d-flex flex-wrap">
-    <div class="card" style="width: 18rem;"  v-for="(item, index) in this.store.todaysWeather" :key="index">
-      <ul class="list-group list-group-flush">
-        <img :src="`http://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`" class="card-img-top" alt="...">
-        <li class="list-group-item">Temperature: {{ item.main.temp }} °</li>
-        <li class="list-group-item">Time: {{ item.dt_txt}} </li>
-      </ul>
-    </div>
-
-  </div>
-  <h2>Tempo prossimi giorni</h2>
-  <div v-if="Object.keys(store.todaysWeather).length > 0" class="d-flex flex-wrap">
-
-    <div class="card" style="width: 18rem;"  v-for="index in 4" :key="index-1">
-      <ul class="list-group list-group-flush">
-        <img :src="`http://openweathermap.org/img/wn/${this.store.nextDaysPreview[index-1].weather[0].icon}@2x.png`" class="card-img-top" alt="...">
-        <li class="list-group-item">Temperature: {{ this.store.nextDaysPreview[index-1].main.temp }} °</li>
-        <li class="list-group-item">Time: {{ this.store.nextDaysPreview[index-1].dt_txt}} </li>
-      </ul>
-    </div>
-  </div>
- </div>
+  <body @click="this.store.suggestionsOpen = false">
+    <Navbar @submit-search="getCoordinates" @getUserLocation="getUserLocation" /> 
+    <Loader v-if="Object.keys(store.currentWeather).length === 0 && this.store.errorText.length === 0"/>
+    <Main/>
+  </body>
 </template>
 
-<style scoped>
-
+<style lang="scss" scoped>
+@use './assets/scss/main.scss';
 </style>

@@ -1,0 +1,14 @@
+
+
+//@import 'bootstrap/scss/bootstrap';
+
+
+@import './partials/general';
+@import './partials/typography';
+@import './partials/utils';
+body{
+  background-color: #106ee8;
+  color: white;
+  min-height: 100vh;
+  font-family: "Roboto", sans-serif;
+}
